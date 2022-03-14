@@ -1,0 +1,36 @@
+name: Docker
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+     
+      - name: Get version
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+      - name: Build and push the images
+        run: |
+          
+            IMAGE_NAME=$service1:${{ env.RELEASE_VERSION }}
+            IMAGE_ID=markoberger/$IMAGE_NAME
+
+            docker build $package --file $package/Dockerfile --tag $IMAGE_NAME
+
+            docker tag $IMAGE_NAME $IMAGE_ID
+            docker push $IMAGE_ID
+          
